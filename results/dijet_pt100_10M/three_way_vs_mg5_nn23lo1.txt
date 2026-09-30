@@ -1,0 +1,17 @@
+sample                       xsec [pb]         error  rel.err     events  IDWTUP
+MG5-nn23lo1                1.37226e+06         84.96   0.006%   10000000      -4
+MG5-LHAPDF                 1.37976e+06         85.38   0.006%   10000000      -4
+MG7                        1.37964e+06         141.1   0.010%   10000000       3
+  MG5-LHAPDF / MG5-nn23lo1 = 1.00547   (+62.27 sigma)
+  MG7 / MG5-nn23lo1 = 1.00538   (+44.79 sigma)
+
+shape comparison (dsigma/dx, each sample normalised to its own xsec; chi2/ndf vs first file)
+  j1_pt     MG5-LHAPDF: 292.7/22  MG7: 270.3/21
+  j2_pt     MG5-LHAPDF: 292.7/22  MG7: 270.3/21
+  j1_eta    MG5-LHAPDF: 180.5/38  MG7: 257.0/38
+  j2_eta    MG5-LHAPDF: 181.0/40  MG7: 208.8/39
+  mjj       MG5-LHAPDF: 211.7/30  MG7: 201.9/30
+  ystar     MG5-LHAPDF: 169.2/22  MG7: 159.6/22
+  ht        MG5-LHAPDF: 292.7/22  MG7: 270.3/21
+
+7 plots written to cmp_dijet_pt100_<observable>.pdf
