@@ -54,6 +54,12 @@ def main():
             card.set_cut("cuts.%s.%s" % (cut, bound), value)
             print("  %-6s -> %s.%s = %s" % (mg5_name, cut, bound, value))
 
+    # MG7 >= 0.3 (main after Sep 2026) has beam.max_jet_flavor, which also rewrites a standard
+    # jet group; older versions only have the [multiparticles] list, edited below.
+    if "max_jet_flavor" in card["beam"]:
+        if int(card["beam"]["max_jet_flavor"]) != args.maxjetflavor:
+            card.set("beam.max_jet_flavor", args.maxjetflavor, user=True)
+            print("  beam.max_jet_flavor = %d" % args.maxjetflavor)
     jet = list(mps["jet"])
     if args.maxjetflavor == 5 and 5 not in jet:
         mps["jet"] = jet[:4] + [5] + jet[4:8] + [-5] + jet[8:]

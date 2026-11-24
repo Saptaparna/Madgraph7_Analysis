@@ -60,7 +60,8 @@ set run.cpu_mode $CPU_MODE
 set run.seed $SEED
 set run.output_format lhe
 set run.verbosity log
-set beam.e_cm $ECM
+set beam.ebeam1 $EBEAM
+set beam.ebeam2 $EBEAM
 set beam.pdf NNPDF23_lo_as_0130_qed
 set beam.dynamical_scale_choice half_transverse_mass
 set generation.events $NEVENTS

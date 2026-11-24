@@ -1,0 +1,4 @@
+MG7 commit e0f27528089289d55a29f3dcd786424d3e010f4f (Mon Nov 23 16:44:02 2026 +0100)
+VERSION file: 0.2.1 (not bumped on main)
+madspace built with CUDA sm_80, SIMD, OpenBLAS from source
+seed 777 (seed 12345 crashes, see README)

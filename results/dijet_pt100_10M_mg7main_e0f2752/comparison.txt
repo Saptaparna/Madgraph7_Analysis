@@ -1,0 +1,20 @@
+sample                       xsec [pb]         error  rel.err     events  IDWTUP
+MG5-LHAPDF                 1.37976e+06         85.38   0.006%   10000000      -4
+MG7-0.2.1                  1.37964e+06         141.1   0.010%   10000000       3
+MG7-nov23                  1.37981e+06         161.2   0.012%   10000000      -4
+  MG7-0.2.1 / MG5-LHAPDF = 0.99991   (-0.73 sigma)
+  MG7-nov23 / MG5-LHAPDF = 1.00004   (+0.29 sigma)
+
+shape comparison (dsigma/dx, each sample normalised to its own xsec; chi2/ndf vs first file)
+  j1_pt     MG7-0.2.1: 13.0/22  MG7-nov23: 16.4/23
+  j2_pt     MG7-0.2.1: 13.0/22  MG7-nov23: 16.4/23
+  j1_eta    MG7-0.2.1: 95.5/38  MG7-nov23: 82.6/38
+  j2_eta    MG7-0.2.1: 61.8/39  MG7-nov23: 39.6/40
+  jet_eta   MG7-0.2.1: 36.0/40  MG7-nov23: 35.7/40
+  fwd_abseta  MG7-0.2.1: 35.6/24  MG7-nov23: 33.2/25
+  ctr_abseta  MG7-0.2.1: 16.2/22  MG7-nov23: 22.6/22
+  mjj       MG7-0.2.1: 23.4/30  MG7-nov23: 20.9/30
+  ystar     MG7-0.2.1: 26.9/22  MG7-nov23: 16.9/22
+  ht        MG7-0.2.1: 13.0/22  MG7-nov23: 16.4/23
+  x_max     MG7-0.2.1: 27.9/19  MG7-nov23: 27.8/19
+  x_min     MG7-0.2.1: 26.0/27  MG7-nov23: 32.1/27

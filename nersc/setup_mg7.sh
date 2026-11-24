@@ -9,7 +9,11 @@
 set -euo pipefail
 
 MG7_BASE=${MG7_BASE:-$PSCRATCH/mg7_athena}
-MG7_TAG=${MG7_TAG:-main}          # pin to a tag/commit once one works for you
+MG7_TAG=${MG7_TAG:-main}          # tag, branch or commit to check out
+MG7_LABEL=${MG7_LABEL:-}          # e.g. nov23: installs into MadGraph7_nov23 with env_mg7_nov23.sh,
+                                  # next to (not over) an existing install
+MG7_SRC=MadGraph7${MG7_LABEL:+_$MG7_LABEL}
+ENV_FILE=env_mg7${MG7_LABEL:+_$MG7_LABEL}.sh
 MG5_REF=${MG5_REF:-}              # e.g. a tag matching the MG5 version ATLAS uses; empty = default branch
 CUDA_ARCH=${CUDA_ARCH:-80}        # Perlmutter A100 = sm_80
 JOBS=${JOBS:-16}
@@ -30,14 +34,14 @@ conda activate "$MG7_BASE/pyenv"
 python --version
 
 # --- MadGraph7 --------------------------------------------------------------
-if [ ! -d MadGraph7 ]; then
-  git clone https://github.com/MadGraphTeam/MadGraph7.git
+if [ ! -d "$MG7_SRC" ]; then
+  git clone https://github.com/MadGraphTeam/MadGraph7.git "$MG7_SRC"
 fi
-( cd MadGraph7 && git fetch --tags && git checkout "$MG7_TAG" && cat VERSION )
+( cd "$MG7_SRC" && git fetch --tags origin && git checkout "$MG7_TAG" && git log -1 --format='commit %h (%cd)' && cat VERSION )
 
 # madspace: CPU (SIMD) + CUDA backends, installed into MadGraph7/madspace/install
 # (a git checkout always builds from source; the PyPI wheel is only used by release tarballs)
-( cd MadGraph7 && python madspace/install.py --source -y --cuda --cuda-arch "$CUDA_ARCH" \
+( cd "$MG7_SRC" && python madspace/install.py --source -y --cuda --cuda-arch "$CUDA_ARCH" \
       --simd --no-hip --no-docs --no-debug -j "$JOBS" )
 
 # --- MG5_aMC reference -------------------------------------------------------
@@ -60,12 +64,13 @@ else
 fi
 
 # --- env file -----------------------------------------------------------------
-cat > "$MG7_BASE/env_mg7.sh" <<EOF
+cat > "$MG7_BASE/$ENV_FILE" <<EOF
 module load PrgEnv-gnu cudatoolkit conda
 conda activate $MG7_BASE/pyenv
 export MG7_BASE=$MG7_BASE
-export MG7_DIR=$MG7_BASE/MadGraph7
+export MG7_DIR=$MG7_BASE/$MG7_SRC
+export MG7_LABEL=$MG7_LABEL
 export MG5_DIR=$MG7_BASE/mg5amcnlo
 export LHAPDF_DATA_PATH=$PDFPATH
 EOF
-echo "Done. Next: source $MG7_BASE/env_mg7.sh"
+echo "Done. Next: source $MG7_BASE/$ENV_FILE"

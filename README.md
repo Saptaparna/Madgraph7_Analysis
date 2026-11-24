@@ -31,28 +31,64 @@ MG7 ran on one NVIDIA A100 (NERSC Perlmutter). MG5 ran on one 128-core CPU node 
 
 Plots are in [`results/dijet_pt100_10M/plots/`](results/dijet_pt100_10M/plots/).
 
+## Rerun with MG7 `main` (commit `e0f2752`, 2026-11-23)
+
+No release has been tagged since v0.2.1 (the VERSION file on `main` still says 0.2.1), so the newer code was taken
+from `main`. Same setup and 10M events, one A100 (69 s wall). The reference is the same MG5-LHAPDF sample.
+
+| sample | σ [pb] | error | ratio to MG5-LHAPDF |
+|---|---|---|---|
+| MG5, LHAPDF 247000 | 1.37976e6 | 85 | 1 |
+| MG7 0.2.1 (seed 12345) | 1.37964e6 | 141 | 0.99991 (−0.7σ) |
+| **MG7 main `e0f2752` (seed 777)** | **1.37981e6** | 161 | **1.00004 (+0.3σ)** |
+
+* Shapes vs MG5-LHAPDF (χ²/ndf): jet pT 16/23, H_T 16/23, m_jj 21/30, y* 17/22, jet η (all jets) 36/40,
+  |η| of the more central jet 23/22, |η| of the more forward jet 33/25, x_min 32/27, x_max 28/19. The same agreement
+  as for 0.2.1; the two MG7 versions overlap in every plot
+  ([`results/dijet_pt100_10M_mg7main_e0f2752/`](results/dijet_pt100_10M_mg7main_e0f2752/)).
+* The last bins of the forward-jet |η| (4.5–5, next to the |η| < 5 cut) are low by the same amount in both MG7
+  versions, so this is a small systematic effect at the cut edge, not a fluctuation.
+* The incoming-parton order is unchanged (leading-jet η 83/38).
+* The LHE file now declares IDWTUP = −4, as madevent does (0.2.1 wrote 3).
+* **Bug:** with seed 12345 the 10M-event run crashes while writing the LHE file:
+  `RuntimeError: Color index out of range` (`madspace/src/driver/lhe_output.cpp`,
+  `LHECompleter::complete_event_data`). It is reproducible; 100k events run fine on CPU and GPU, and seed 777
+  completes. A failing run stops with an error, so completed samples are not affected.
+* Changes on `main` since 0.2.1 that matter here: an invalid `set` now stops a scripted run (it only warned before);
+  the gridpack no longer offers `--verbosity none`; the run card has `beam.ebeam1`/`beam.ebeam2` (`beam.e_cm` is still
+  accepted as an alias), `beam.pdf` sets `pdf1`/`pdf2`, and there is a new `beam.max_jet_flavor`; madspace builds
+  OpenBLAS from source by default (`--no-openblas` uses a system BLAS).
+
+Reproduce on Perlmutter:
+
+```bash
+MG7_TAG=e0f275280 MG7_LABEL=nov23 bash nersc/setup_mg7.sh     # installs next to an existing MG7
+bash nersc/rerun_mg7.sh <account> nov23 10000000                # MG7 on GPU, then the comparison
+```
+
 ## Contents
 
 | path | purpose |
 |---|---|
-| `nersc/setup_mg7.sh` | installs MG7 + madspace (CPU SIMD + CUDA) and MG5 on Perlmutter; writes `env_mg7.sh` |
+| `nersc/setup_mg7.sh` | installs MG7 + madspace (CPU SIMD + CUDA) and MG5 on Perlmutter; writes `env_mg7.sh`. `MG7_TAG` picks the commit, `MG7_LABEL` installs side by side (`MadGraph7_<label>`, `env_mg7_<label>.sh`) |
 | `nersc/run_dijet.sh` | one LO setup in three modes: `mg7` (new engine), `mg7_madevent` (MG7 legacy LO), `mg5`. Options: `NEVENTS`, `PTJ`, `ECM`, `PROC`, `TAG`, `MAXJETFLAVOR`, `PDF_MODE=builtin\|lhapdf`, `DEVICE`; splits madevent runs above 1M events with `multi_run` |
 | `nersc/mg7_mg5_defaults.py` | adds the MG5 default cuts that the MG7 engine lacks (photon pt/η/ΔR cuts; b quarks in the jet group for 5F) to `run_card.toml` |
 | `nersc/compare_lhe.py` | streams any number of LHE files into fixed histograms: σ ± error, shape χ², PDF plots with ratio panels |
 | `nersc/perlmutter_validation.slurm` | small three-way validation on one GPU node, plus gridpack timing |
+| `nersc/rerun_mg7.sh` | reruns only MG7 (a labelled install) at high statistics and compares it with the existing MG5 reference and the previous MG7 sample; regenerates the MG5 reference if it was purged from scratch |
 | `nersc/highstats_submit.sh` | 10M-event comparison as four Slurm jobs (MG7 GPU, MG5 builtin, MG5 LHAPDF, comparison) |
 | `athena/` | job options, LHE packaging and a `Gen_tf.py` wrapper to shower MG7 LHE with Pythia8 A14 + EvtGen |
 
-## MG5 → MG7 differences to keep in mind (MG7 0.2.1)
+## MG5 → MG7 differences to keep in mind (MG7 0.2.1; see above for what changed on `main`)
 
 * The MG7 engine uses a TOML run card (`Cards/run_card.toml`). Legacy `set ptj ...`-style cut names are ignored with
-  only a warning. Use `set jet-pt.min 100` or `set cuts.<cut>.<min|max> <value>`.
+  only a warning (on `main`, an invalid `set` stops a scripted run). Use `set jet-pt.min 100` or `set cuts.<cut>.<min|max> <value>`.
 * No default photon cuts (MG5 applies pta 10, |η_a| < 2.5, ΔR 0.4), and no Frixione photon isolation.
 * For 5-flavour models the `jet` group does not include b quarks, and the `bottom` group has no cuts.
 * No MLM/CKKW merging or bias module in the new engine.
 * α_s comes from the LHAPDF set's table. Compare against MG5 with `pdlabel = lhapdf`, not the built-in PDFs.
-* LHE: IDWTUP = 3, and the scale-variation `<rwgt>` block has no nominal entry.
-* The gridpack is a directory with `bin/generate_events`. `--verbosity none` crashes (use `log`).
+* LHE: IDWTUP = 3 (−4 on `main`), and the scale-variation `<rwgt>` block has no nominal entry.
+* The gridpack is a directory with `bin/generate_events`. `--verbosity none` crashes (use `log`; removed on `main`).
 
 <details>
 <summary><b>Full MG5 → MG7 run-card parameter map (click to expand)</b></summary>
